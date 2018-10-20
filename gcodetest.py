@@ -301,7 +301,7 @@ if __name__ == '__main__':
 
     mydata = startSequence()
     if args.path == 'grid':
-        mydata += move_grid((50, 50), (150, 150), z=150, vres=5, hres=5)
+        mydata += move_grid((50, 50), (150, 150), z=150, vres=5, hres=5, delay=800)
     else:
         mydata  = startSequence()
         mydata += testMoveSequence()
