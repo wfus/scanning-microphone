@@ -17,3 +17,10 @@ Then, we'll be able to install it through pip.
 sudo pip install pyaudio
 ```
 
+## Debugging
+
+A nice way to see if your microphone is connected is with
+
+```bash
+arecord -l
+```
