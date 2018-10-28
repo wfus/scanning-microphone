@@ -1,6 +1,9 @@
 # Gcode files
 *.gcode
 
+# Virtualenv
+venv/
+
 # Mac Stuff
 *.DS_Store
 
