@@ -19,7 +19,7 @@ import numpy as np
 
 class Printer(object):
 
-    def __init__(self, serial=None):
+    def __init__(self, serial=None, baudrate=250000):
         '''initializes our printer class. Will choose the first USB device
         detected if serial was not specified.'''
         if not serial:
@@ -30,6 +30,9 @@ class Printer(object):
         else:
             self.serial = serial
         print('Attempting to look for connections on: %s' % self.serial)
+
+        # PARAMETERS THAT MAY NEED TO BE CHANGED
+        self.baudrate = baudrate
 
     @classmethod
     def scanserial(cls):
