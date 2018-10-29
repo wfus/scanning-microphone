@@ -15,7 +15,13 @@ to work. The TAZ LULZBOT 3D printer that we use has a baud rate of 2500000.
 """
 import glob
 import numpy as np
+import serial
+import logging
+from serial import SerialException
+from printcore import printcore
 
+
+logger = logging.getLogger(__name__)
 
 class Printer(object):
 
@@ -33,6 +39,69 @@ class Printer(object):
 
         # PARAMETERS THAT MAY NEED TO BE CHANGED
         self.baudrate = baudrate
+
+        # Connect using lower level printcore system
+        try:
+            self._p = printcore(port=self.serial, baud=self.baudrate)
+        except SerialException as e:
+            # Currently, there is no errno, but it should be there in the future
+            if e.errno == 2:
+                raise ValueError("Error: You are trying to connect to a non-existing port.")
+            elif e.errno == 8:
+                output = "Error: You don't have permission to open %s.\n" % port
+                output += "You might need to add yourself to the dialout group."
+                raise RuntimeError(output)
+            else:
+                raise RuntimeError(str(e))
+            # Kill the scope anyway
+            return False
+        except OSError as e:
+            if e.errno == 2:
+                raise ValueError("Error: You are trying to connect to a non-existing port.")
+            else:
+                raise RuntimeError(str(e))
+            return False
+
+
+    def __del__(self):
+        self._p.disconnect()
+    
+    def reset(self):
+        '''resets the internal implementation of the printer'''
+        self._p.reset()
+    
+    def move_now(self, l):
+        """Executes an immediate move command in the form <axis> <number"""
+        if len(l.split()) < 2:
+            logger.error("Invalid move command specified")
+            return
+        if self._p.printing:
+            logger.error("Printer is currently printing. Please pause the print before you issue manual commands.")
+            return
+        if not self._p.online:
+            logger.error("Printer is not online. Unable to move.")
+            return
+        l = l.split()
+        if l[0].lower() == "x":
+            axis = "X"
+        elif l[0].lower() == "y":
+            axis = "Y"
+        elif l[0].lower() == "z":
+            axis = "Z"
+        else:
+            logger.error("Unknown axis.")
+            return
+        try:
+            float(l[1])  # check if distance can be a float
+        except:
+            logger.error("Invalid distance for move command")
+            return
+        self._p.send_now("G91")
+        self._p.send_now("G0 " + axis + str(l[1]))
+        self._p.send_now("G90")
+
+    
+
 
     @classmethod
     def scanserial(cls):
