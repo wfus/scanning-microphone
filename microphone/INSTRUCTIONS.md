@@ -14,7 +14,7 @@ sudo apt-get install ffmpeg libav-tools
 Then, we'll be able to install it through pip.
 
 ```bash
-sudo pip install pyaudio
+sudo pip install pyaudio wave
 ```
 
 ## Debugging
