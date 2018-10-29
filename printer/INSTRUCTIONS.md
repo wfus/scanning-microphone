@@ -10,5 +10,5 @@ First we have to install a few packages. __The code requires the use of Python
 3__!
 
 ```bash
-sudo pip3 install serial
+sudo pip3 install pyserial dbus-python psutil
 ```
