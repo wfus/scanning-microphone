@@ -11,3 +11,4 @@ from printer import Printer
 if __name__ == '__main__':
     print('Creating the printer object.')
     printer = Printer()
+    print('Baud rate set to %s' % str(printer.baudrate))
