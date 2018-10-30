@@ -128,8 +128,20 @@ class Printer(object):
         '''resets the internal implementation of the printer'''
         self._p.reset()
     
+    def move_coord(self, x=None, y=None, z=None):
+        '''moves x, y, z units. If multiple are supplied, the nozzle will move in a straight line to the
+        specified end coordinate'''
+        self._p.send_now("G91")
+        pkt = "G0 "
+        pkt += "X {}".format(x) if x else ""
+        pkt += "Y {}".format(y) if y else ""
+        pkt += "Z {}".format(z) if z else ""
+        self._p.send_now(pkt)
+        self._p.send_now("G90")
+        
+
     def move_now(self, l):
-        """Executes an immediate move command in the form <axis> <number"""
+        """Executes an immediate move command in the form <axis> <number>"""
         if len(l.split()) < 2:
             logger.error("Invalid move command specified")
             return
