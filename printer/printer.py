@@ -17,17 +17,75 @@ import glob
 import numpy as np
 import serial
 import logging
+import threading
 from serial import SerialException
 from printcore import printcore
-
+import time
 
 logger = logging.getLogger(__name__)
 
+class Status(object):
+
+    def __init__(self):
+        self.extruder_temp = 0
+        self.extruder_temp_target = 0
+        self.bed_temp = 0
+        self.bed_temp_target = 0
+        self.print_job = None
+        self.print_job_progress = 1.0
+
+    def update_tempreading(self, tempstr):
+        temps = parse_temperature_report(tempstr)
+        if "T0" in temps and temps["T0"][0]: hotend_temp = float(temps["T0"][0])
+        elif "T" in temps and temps["T"][0]: hotend_temp = float(temps["T"][0])
+        else: hotend_temp = None
+        if "T0" in temps and temps["T0"][1]: hotend_setpoint = float(temps["T0"][1])
+        elif "T" in temps and temps["T"][1]: hotend_setpoint = float(temps["T"][1])
+        else: hotend_setpoint = None
+        if hotend_temp is not None:
+            self.extruder_temp = hotend_temp
+            if hotend_setpoint is not None:
+                self.extruder_temp_target = hotend_setpoint
+        bed_temp = float(temps["B"][0]) if "B" in temps and temps["B"][0] else None
+        if bed_temp is not None:
+            self.bed_temp = bed_temp
+            setpoint = temps["B"][1]
+            if setpoint:
+                self.bed_temp_target = float(setpoint)
+
+    @property
+    def bed_enabled(self):
+        return self.bed_temp != 0
+
+    @property
+    def extruder_enabled(self):
+        return self.extruder_temp != 0
+
+
 class Printer(object):
 
-    def __init__(self, serial=None, baudrate=250000):
+    def __init__(self, serial=None, baudrate=250000, block=True):
         '''initializes our printer class. Will choose the first USB device
-        detected if serial was not specified.'''
+        detected if serial was not specified.
+        
+        @param serial:
+        @param baudrate: baudrate setting of your 3D printer/CNC
+        @param block: will we block until printer has been connected?
+        '''
+        # Set the current status of the printer
+        self.status = Status()
+        self.statuscheck = False
+        self.status_thread = None
+        self.paused = False
+        self.userm114 = 0
+        self.userm105 = 0
+        self.m105_waitcycles = 0
+        self.monitor_interval = 3
+
+        # Temperatures (we will be using OFF
+        self.temps = {"pla": "185", "abs": "230", "off": "0"}
+        self.bedtemps = {"pla": "60", "abs": "110", "off": "0"}
+
         if not serial:
             possible_serials = self.scanserial()
             if not possible_serials:
@@ -53,18 +111,16 @@ class Printer(object):
                 raise RuntimeError(output)
             else:
                 raise RuntimeError(str(e))
-            # Kill the scope anyway
-            return False
         except OSError as e:
             if e.errno == 2:
                 raise ValueError("Error: You are trying to connect to a non-existing port.")
             else:
                 raise RuntimeError(str(e))
-            return False
+        
+        self.statuscheck = True
+        self.status_thread = threading.Thread(target = self.statuschecker)
+        self.status_thread.start()
 
-
-    def __del__(self):
-        self._p.disconnect()
     
     def reset(self):
         '''resets the internal implementation of the printer'''
@@ -112,3 +168,42 @@ class Printer(object):
         for g in ['/dev/ttyUSB*', '/dev/ttyACM*', "/dev/tty.*", "/dev/cu.*", "/dev/rfcomm*"]:
             baselist += glob.glob(g)
         return [p for p in baselist if _bluetoothfilter(p)]
+
+    #  --------------------------------------------------------------
+    #  Printer status monitoring
+    #  --------------------------------------------------------------
+    def disconnect(self):
+        self._p.disconnect()
+
+    def statuschecker_inner(self, do_monitoring=True):
+        if self._p.online:
+            if self._p.writefailures >= 4:
+                logger.error("Disconnecting after 4 failed writes.")
+                self.status_thread = None
+                self.disconnect()
+                return
+            if do_monitoring:
+                if not self.paused:
+                    self._p.send_now("M27")
+                if self.m105_waitcycles % 10 == 0:
+                    self._p.send_now("M105")
+                self.m105_waitcycles += 1
+        cur_time = time.time()
+        wait_time = 0
+        while time.time() < cur_time + self.monitor_interval - 0.25:
+            if not self.statuscheck:
+                break
+            time.sleep(0.25)
+            # Safeguard: if system time changes and goes back in the past,
+            # we could get stuck almost forever
+            wait_time += 0.25
+            if wait_time > self.monitor_interval - 0.25:
+                break
+        # Always sleep at least a bit, if something goes wrong with the
+        # system time we'll avoid freezing the whole app this way
+        time.sleep(0.25)
+
+
+    def statuschecker(self):
+        while self.statuscheck:
+            self.statuschecker_inner()
