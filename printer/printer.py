@@ -121,6 +121,8 @@ class Printer(object):
         self.status_thread = threading.Thread(target = self.statuschecker)
         self.status_thread.start()
 
+    def online(self):
+        return self._p.online
     
     def reset(self):
         '''resets the internal implementation of the printer'''
