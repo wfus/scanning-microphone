@@ -51,3 +51,29 @@ $ bash searchusb.sh
 
 In this case, our printer was `UltiMachine__ultimachine.com__RAMBo_6403636363835120E062` 
 with a device name __/dev/ttyACM0__. You will need the device name to connect later!
+
+## Testing
+
+To test to see if the printer is connected, go to the top level
+directory and spin up a python interactive terminal. I recommend
+using ipython for convenience.
+
+```python
+>>>from scanner import Scanner
+>>>a = Scanner('/dev/ttyACM0')
+ALSA lib pcm_dsnoop.c:618:(snd_pcm_dsnoop_open) unable to open slave
+ALSA lib pcm_dmix.c:1052:(snd_pcm_dmix_open) unable to open slave
+ALSA lib pcm.c:2495:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
+ALSA lib pcm.c:2495:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.center_lfe
+ALSA lib pcm.c:2495:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.side
+ALSA lib pcm_dmix.c:1052:(snd_pcm_dmix_open) unable to open slave
+Trying to connect printer through USB port /dev/ttyACM0
+Attempting to look for connections on: /dev/ttyACM0
+True
+
+>>>a.p.move_coord(x=10)
+```
+
+If everything goes correctly, the CNC should move! Make sure to swap
+out the device location if it isn't `/dev/ttyACM0` - use the 
+previous script to find the device name you should use.
