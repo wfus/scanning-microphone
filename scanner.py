@@ -142,5 +142,3 @@ if __name__ == '__main__':
     # Small test script for the TAZ 5 CNC machine in science center 102
     scan = Scanner(serial="/dev/ttyACM0")
     scan.scan_rectangular_lattice((0, 0), (10, 10), 11)
-
-
