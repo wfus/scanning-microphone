@@ -4,7 +4,7 @@ We'll be using some code to control the printer, taken from `Printrun`. Since
 we want direct control over the 3D printer or other CNC setup we will only
 use the core class.
 
-## Installation
+## Installation and Permissions
 
 First we have to install a few packages. __The code requires the use of Python
 3__!
@@ -12,6 +12,21 @@ First we have to install a few packages. __The code requires the use of Python
 ```bash
 sudo pip3 install pyserial dbus-python psutil
 ```
+
+You'll also have to add your user into the permissions group for USB and serial devices,
+unless you want to run all of the scripts with root access (Protip: you don't).
+
+```bash
+# Command is sudo adduser <username> dialout
+$ sudo adduser metamaterials dialout
+```
+
+__YOU WILL HAVE TO RESTART FOR THE CHANGES TO TAKE EFFECT.__ If you're wondering why that
+didn't work, that is the reason most likely.
+
+
+
+
 
 ## Finding the printer
 
