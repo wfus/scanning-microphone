@@ -116,7 +116,6 @@ class Scanner(object):
         # Move back to our original location in z
         self.move(z=-distance_z)
 
-
     def move(self, x=None, y=None, z=None, delay=MOVEMENT_DELAY_TIME, delay_factor=MOVEMENT_DELAY_MULTIPLIER):
         """Displaces the head of the CNC x, y, z units. Will find the shortest distances to get to the
         endpoint by moving stepper motors simultaneously. Delay will pause control sequence to give
