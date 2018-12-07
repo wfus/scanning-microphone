@@ -7,7 +7,8 @@ import numpy as np
 import os
 sys.path.append('./microphone')
 sys.path.append('./printer')
-from microphone import Microphone
+# from microphone import Microphone
+from oscilloscope import OscilloscopeMicrophone as Microphone
 from printer import Printer
 
 
@@ -64,8 +65,8 @@ class Scanner(object):
             dx = p_x - previous_coord[0]
             dy = p_y - previous_coord[1]
             self.move(x=dx, y=dy)
-            fname = os.path.join(savefolder, "{}_{}_{}.wav".format(p_x, p_y, 0))
-            self.mic.record_to_wav(record_time, fname)
+            fname = os.path.join(savefolder, "{}_{}_{}".format(p_x, p_y, 0))
+            self.mic.record_to_file(record_time, fname)
             previous_coord = p_x, p_y
 
         # Move back to our original location. Important since we are using relative coordinates.
@@ -102,8 +103,8 @@ class Scanner(object):
                 dx = p_x - previous_coord[0]
                 dy = p_y - previous_coord[1]
                 self.move(x=dx, y=dy)
-                fname = os.path.join(savefolder, "{}_{}_{}.wav".format(p_x, p_y, z))
-                self.mic.record_to_wav(record_time, fname)
+                fname = os.path.join(savefolder, "{}_{}_{}".format(p_x, p_y, z))
+                self.mic.record_to_file(record_time, fname)
                 previous_coord = p_x, p_y
 
             # Move back to our original location. Important since we are using relative coordinates.

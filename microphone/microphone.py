@@ -45,7 +45,10 @@ class Microphone(object):
         stream.close()
         return frames
     
-    def record_to_wav(self, n, fname):
+    def record_to_file(self, n, fname):
+        # add an extension for wav, since other microphone implementations
+        # may save the file in a different format (for example oscilloscope)
+        fname = fname + '.wav'
         frames = self._record(n)
         # Save it to an actual file with proper parameters
         wavefile = wave.open(fname, 'wb')
