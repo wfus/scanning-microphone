@@ -5,6 +5,7 @@ import time
 import sys
 import numpy as np
 import os
+import tqdm
 sys.path.append('./microphone')
 sys.path.append('./printer')
 # from microphone import Microphone
@@ -93,13 +94,14 @@ class Scanner(object):
         distance_x = end_coord[0] - begin_coord[0]
         distance_y = end_coord[1] - begin_coord[1]
         distance_z = end_coord[2] - begin_coord[2]
-        for z in np.linspace(0, distance_z, resolution_z):
+        for index, z in enumerate(np.linspace(0, distance_z, resolution_z)):
+            print('Scanning height z=%s, layer %d/%d' % (z, index + 1, resolution_z))
             scan_points = [(x, y) for x in np.linspace(0, distance_x, resolution) 
                                 for y in np.linspace(0, distance_y, resolution)]
             
             # Beginning at the begin_coord, we are doing to stop and keep scanning
             previous_coord = begin_coord
-            for p_x, p_y in scan_points:
+            for p_x, p_y in tqdm.tqdm(scan_points):
                 dx = p_x - previous_coord[0]
                 dy = p_y - previous_coord[1]
                 self.move(x=dx, y=dy)
