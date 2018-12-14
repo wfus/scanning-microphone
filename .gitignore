@@ -4,6 +4,9 @@
 # Virtualenv
 venv/
 
+# VSCode
+*.vscode
+
 # Mac Stuff
 *.DS_Store
 
