@@ -1,5 +1,11 @@
 """Main scanning routine that uses both the abstracted microphone class and
-the printer class to scan and record audio samples.
+the printer class to scan and record audio samples. The resultant data may
+have to be processed differently depending on what data source is used. The
+current data sources have been:
+    * raw FFT samples from an Oscilloscope
+    * raw audio waveform from a microphone
+The first one takes much less time since the FFT is being done onboard, so
+usually we will be using raw FFT samples from the attached oscilloscope.
 """
 import time
 import sys
@@ -8,6 +14,7 @@ import os
 import tqdm
 sys.path.append('./microphone')
 sys.path.append('./printer')
+
 # from microphone import Microphone
 from oscilloscope import OscilloscopeMicrophone as Microphone
 from printer import Printer
@@ -37,10 +44,11 @@ class Scanner(object):
     def scan(self):
         raise NotImplementedError
 
-    def scan_rectangular_lattice(self, begin_coord, end_coord, resolution, record_time=2.0, savepath="./data"):
-        """Scans along a square lattice and saves each audio clip at each location. Audio clips
-        will be saved the format <savepath>/<time.time()>_<xloc>_<yloc>_<zloc>.wav
-
+    def scan_rectangular_lattice(self, begin_coord, end_coord, resolution,
+                                 record_time=2.0, savepath="./data"):
+        """Scans along a square lattice and saves each audio clip at each location.
+        Audio clips will be saved the format:
+            <savepath>/<time.time()>_<xloc>_<yloc>_<zloc>.wav
         @param begin_coord: tuple of x and y coordinate to start out with. Since the current code
                             is location agnostic, it is assume the CNC is over begin_coord already
                             TODO: Write a re-centering script or something lmao
@@ -73,10 +81,11 @@ class Scanner(object):
         # Move back to our original location. Important since we are using relative coordinates.
         self.move(x=-distance_x, y=-distance_y)
 
-    def scan_rectangular_prism(self, begin_coord, end_coord, resolution, resolution_z, record_time=2.0, savepath="./data"):
-        """Scans along a square lattice and saves each audio clip at each location. Audio clips
-        will be saved the format <savepath>/<time.time()>_<xloc>_<yloc>_<zloc>.wav
-
+    def scan_rectangular_prism(self, begin_coord, end_coord, resolution,
+                               resolution_z, record_time=2.0, savepath="./data"):
+        """Scans along a square lattice and saves each audio clip at each
+        location. Audio clips will be saved the format:
+            <savepath>/<time.time()>_<xloc>_<yloc>_<zloc>.wav
         @param begin_coord: tuple of x, y, z coordinate to start out with. Since the current code
                             is location agnostic, it is assume the CNC is over begin_coord already
                             TODO: Write a re-centering script or something lmao
@@ -132,6 +141,23 @@ class Scanner(object):
         dz = 0 if not z else z
         distance = (dx**2 + dy**2 + dz**2) ** 0.5
         time.sleep(delay + distance * delay_factor)
+    
+    def move_speed(self, x=0.0, y=0.0, z=0.0, speed=3600, de):
+        """Move to coordinate at a certain speed. Will calculate the delay time
+        needed for the program to wait during travel time by estimating the
+        distance traveled and the speed.
+        @param x (int): distance to travel in x axis (mm) 
+        @param y (int): distance to travel in y axis (mm) 
+        @param z (int): distance to travel in z axis (mm) 
+        @param speed (int): speed of nozzle in mm/min
+        """
+        move_vector = np.array([x, y, z])
+        distance = np.sqrt((move_vector ** 2).sum())
+        time.
+        raise NotImplementedError()
+
+    def set_as_origin(self):
+        pass
 
     def __str__(self):
         pass

@@ -12,6 +12,10 @@ You'll most likely see that the new entry will be something connected to
 /dev/ttyUSB0 or /dev/ttyACM0 or something, which will then be the USB that you
 will specify here. Also, you may have to change around the Baud Rate for this
 to work. The TAZ LULZBOT 3D printer that we use has a baud rate of 2500000.
+
+Some good links for GCODE reference.
+    * https://reprap.org/wiki/G-code
+    * https://www.simplify3d.com/support/articles/3d-printing-gcode-tutorial/
 """
 import glob
 import numpy as np
@@ -63,7 +67,8 @@ class Status(object):
 
 
 class Printer(object):
-
+    """Generic Printer control class. Connect and move the printer head using
+    this check."""
     def __init__(self, serial=None, baudrate=250000, block=True):
         '''initializes our printer class. Will choose the first USB device
         detected if serial was not specified.
@@ -128,18 +133,27 @@ class Printer(object):
         '''resets the internal implementation of the printer'''
         self._p.reset()
     
-    def move_coord(self, x=None, y=None, z=None):
-        '''moves x, y, z units. If multiple are supplied, the nozzle will move in a straight line to the
-        specified end coordinate'''
+    def move_coord(self, x=None, y=None, z=None, speed=3600):
+        """Moves x, y, z units relative to the current position at a certain
+        speed. The speed is measured in mm/minute, and defaults at 6cm/sec."""
+        self._p.send_now("G90")
+        pkt = "G0 "
+        pkt += "X {} F {}".format(x, speed) if x else ""
+        pkt += "Y {} F {}".format(y, speed) if y else ""
+        pkt += "Z {} F {}".format(z, speed) if z else ""
+
+    def move_abs(self, x=None, y=None, z=None, speed=3600):
+        """Moves to the coordinate (x, y, z) units relative to the origin. The
+        origin location can be set with the reset_origin function. The speed is
+        measured in mm/minute, and defaults at 6cm/sec."""
         self._p.send_now("G91")
         pkt = "G0 "
-        pkt += "X {}".format(x) if x else ""
-        pkt += "Y {}".format(y) if y else ""
-        pkt += "Z {}".format(z) if z else ""
+        pkt += "X {} F {}".format(x, speed) if x else ""
+        pkt += "Y {} F {}".format(y, speed) if y else ""
+        pkt += "Z {} F {}".format(z, speed) if z else ""
         self._p.send_now(pkt)
         self._p.send_now("G90")
         
-
     def move_now(self, l):
         """Executes an immediate move command in the form <axis> <number>"""
         if len(l.split()) < 2:
@@ -170,7 +184,11 @@ class Printer(object):
         self._p.send_now("G0 " + axis + str(l[1]))
         self._p.send_now("G90")
 
-    
+    def reset_origin(self):
+        """Chooses the current point and resets the coordinate axis to the
+        point (0, 0, 0) in XYZ space. Useful for when starting scans."""
+        self._p.send_now("G92 X0 Y0 Z0 E0")
+
 
 
     @classmethod
@@ -183,9 +201,6 @@ class Printer(object):
             baselist += glob.glob(g)
         return [p for p in baselist if _bluetoothfilter(p)]
 
-    #  --------------------------------------------------------------
-    #  Printer status monitoring
-    #  --------------------------------------------------------------
     def disconnect(self):
         self._p.disconnect()
 
@@ -216,7 +231,6 @@ class Printer(object):
         # Always sleep at least a bit, if something goes wrong with the
         # system time we'll avoid freezing the whole app this way
         time.sleep(0.25)
-
 
     def statuschecker(self):
         while self.statuscheck:
