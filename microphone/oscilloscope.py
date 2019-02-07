@@ -12,7 +12,9 @@ import pickle
 
 
 class OscilloscopeMicrophone(object):
-
+    """Implements the interface for the TEKTRONIX MDO3014 oscilloscope. The
+    commands should be similar for any TEKTRONIX oscilloscope, but may differ
+    slightly in the number of channels."""
     def __init__(self):
         # Try to connect to the first USBTMC oscilloscope found.
         rm = visa.ResourceManager('@py')
@@ -31,13 +33,12 @@ class OscilloscopeMicrophone(object):
         
         self.device = rm.get_instrument(devname)
 
-
         # Sanity check - print out the device name through the pretty
         # universal command "*IDN?"
         res = self.device.query('*IDN?')
         print('Using oscilloscope: %s' % res)
 
-    def _record(self, n):
+    def _record(self, n, sample_start=0, sample_end=5000):
         """Records for n seconds, while blocking. Only returns control after
         recording is finished. For the oscilloscope, this returns our result
         as a numpy array, with dimensions (num_recordings, num_samples). We will
@@ -47,29 +48,42 @@ class OscilloscopeMicrophone(object):
         so this may have to be changed for other oscilloscopes.
 
         MAKE SURE MATH IS TURNED ON ON THE OSCILLOSCOPE OR IT MAY SAY THAT
-        THE COMMAND HAS TIMED OUT!!!
+        THE COMMAND HAS TIMED OUT! The best setting is to turn the display for
+        all channels off and math on, so the FFT is the only thing rendering
+        on the display at the time.
+
+        To figure out which range of samples of the FFT to record, you may have
+        to convert your frequency range of interest into samples range by
+        querying the units that the oscilloscope is currently on.
+
+        @param sample_start (int): start of FFT samples to collect
+        @param sample_end (int): end of FFT samples to collect
         """
         end_time = time.time() + n
         lst = []
         while time.time() < end_time:
-            lst.append(self._fetch_fft_sample())
+            lst.append(self._fetch_fft_sample(sample_start, sample_end))
         return np.array(lst)
 
-    def record_to_file(self, n, fname):
+    def record_to_file(self, num_seconds, fname):
+        """Records <num_seconds> seconds of oscilloscope data and saves it as
+        a numpy array to the file specified. User does not need to pass in a
+        file extension."""
         fname += '.pkl'
-        frames = self._record(n)
+        frames = self._record(num_seconds)
         frames.dump(fname)
 
-    def _fetch_fft_sample(self, samples=5000, range=None):
+    def _fetch_fft_sample(self, sample_start, sample_end):
         """Gets a sample of an FFT from the MATH command. Command may be
-        specialized for the TEKTRONIX MDO3014 Oscilloscope
-        
-        @param: number of samples to grab
+        specialized for the TEKTRONIX MDO3014 Oscilloscope. User specifies the
+        range of the samples (corresponding to frequency range of interest).
+        @param sample_start: sample number to start recording at
+        @param sample_end: sample number to stop recording at
         """
         self._write('MATH:DEFINE "FFT(CH1)"')
         self._write(':DATa:SOUrce MATH')
-        self._write(':DATa:STARt 0')
-        self._write(':DATa:STOP %d' % samples)
+        self._write(':DATa:STARt %d' % sample_start)
+        self._write(':DATa:STOP %d' % sample_end)
         self._write(':WFMOutpre:ENCdg ASCii')
         self._write(':HEADer 0')
         self._write(':VERBose 0')
@@ -103,7 +117,7 @@ if __name__ == '__main__':
 
     xscale, yscale = mic.get_fft_scale()
     start = time.time()
-    y = mic._fetch_fft_sample()
+    y = mic._fetch_fft_sample(0, 5000)
     end = time.time()
     print("Took %s seconds to fetch fft data" % str(end - start))
     x = np.array(list(range(y.shape[0]))) * xscale
@@ -113,6 +127,3 @@ if __name__ == '__main__':
     plt.ylabel('Voltage')
     plt.plot(x, y)
     plt.show()
-
-    #mic._query(':WFMOutpre?')
-    
