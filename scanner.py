@@ -15,6 +15,8 @@ import tqdm
 sys.path.append('./microphone')
 sys.path.append('./printer')
 
+
+# Switch up the import depending on which data collection device you're using
 # from microphone import Microphone
 from oscilloscope import OscilloscopeMicrophone as Microphone
 from printer import Printer
