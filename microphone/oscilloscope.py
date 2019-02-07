@@ -113,7 +113,6 @@ if __name__ == '__main__':
     mic = OscilloscopeMicrophone()
     
     from matplotlib import pyplot as plt
-    import numpy as np
 
     xscale, yscale = mic.get_fft_scale()
     start = time.time()
