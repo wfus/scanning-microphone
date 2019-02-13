@@ -87,10 +87,6 @@ class Printer(object):
         self.m105_waitcycles = 0
         self.monitor_interval = 3
 
-        # Temperatures (we will be using OFF
-        self.temps = {"pla": "185", "abs": "230", "off": "0"}
-        self.bedtemps = {"pla": "60", "abs": "110", "off": "0"}
-
         if not serial:
             possible_serials = self.scanserial()
             if not possible_serials:
@@ -133,26 +129,31 @@ class Printer(object):
         '''resets the internal implementation of the printer'''
         self._p.reset()
     
-    def move_coord(self, x=None, y=None, z=None, speed=3600):
+    def move_coord(self, x=None, y=None, z=None, speed=None):
         """Moves x, y, z units relative to the current position at a certain
         speed. The speed is measured in mm/minute, and defaults at 6cm/sec."""
-        self._p.send_now("G90")
+        self._p.send_now("G91")
         pkt = "G0 "
-        pkt += "X {} F {}".format(x, speed) if x else ""
-        pkt += "Y {} F {}".format(y, speed) if y else ""
-        pkt += "Z {} F {}".format(z, speed) if z else ""
+        pkt += "X{} ".format(x) if x else ""
+        pkt += "Y{} ".format(y) if y else ""
+        pkt += "Z{} ".format(z) if z else ""
+        pkt += "F{} ".format(speed) if speed else ""
+        self._p.send_now(pkt)
+        self._p.send_now("G90")
 
-    def move_abs(self, x=None, y=None, z=None, speed=3600):
+
+    def move_abs(self, x=None, y=None, z=None, speed=None):
         """Moves to the coordinate (x, y, z) units relative to the origin. The
         origin location can be set with the reset_origin function. The speed is
         measured in mm/minute, and defaults at 6cm/sec."""
         self._p.send_now("G91")
         pkt = "G0 "
-        pkt += "X {} F {}".format(x, speed) if x else ""
-        pkt += "Y {} F {}".format(y, speed) if y else ""
-        pkt += "Z {} F {}".format(z, speed) if z else ""
+        pkt += "X{} ".format(x) if x else ""
+        pkt += "Y{} ".format(y) if y else ""
+        pkt += "Z{} ".format(z) if z else ""
+        pkt += "F{} ".format(speed) if speed else ""
+        pkt += "\n"
         self._p.send_now(pkt)
-        self._p.send_now("G90")
         
     def move_now(self, l):
         """Executes an immediate move command in the form <axis> <number>"""
@@ -188,8 +189,6 @@ class Printer(object):
         """Chooses the current point and resets the coordinate axis to the
         point (0, 0, 0) in XYZ space. Useful for when starting scans."""
         self._p.send_now("G92 X0 Y0 Z0 E0")
-
-
 
     @classmethod
     def scanserial(cls):
@@ -235,3 +234,7 @@ class Printer(object):
     def statuschecker(self):
         while self.statuscheck:
             self.statuschecker_inner()
+
+
+if __name__ == '__main__':
+    test = Printer()

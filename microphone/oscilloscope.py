@@ -37,6 +37,7 @@ class OscilloscopeMicrophone(object):
         # universal command "*IDN?"
         res = self.device.query('*IDN?')
         print('Using oscilloscope: %s' % res)
+        self.name = res
 
     def _record(self, n, sample_start=0, sample_end=5000):
         """Records for n seconds, while blocking. Only returns control after
@@ -62,7 +63,12 @@ class OscilloscopeMicrophone(object):
         end_time = time.time() + n
         lst = []
         while time.time() < end_time:
-            lst.append(self._fetch_fft_sample(sample_start, sample_end))
+            try:
+                lst.append(self._fetch_fft_sample(sample_start, sample_end))
+            except ValueError as v_err:
+                # Usually happens when oscilloscope data gets corrupted and
+                # can't be interpreted as a float or something
+                print('Got error when fetching microphone data: %s' % str(v_err))
         return np.array(lst)
 
     def record_to_file(self, num_seconds, fname):
@@ -102,11 +108,61 @@ class OscilloscopeMicrophone(object):
         # TODO: Figure why everything is off by a factor of 10^3
         return float(xscale) / 1000.0, float(yscale)
 
+    def samples_to_frequency(self, sample_location):
+        """Converts FFT sample locations to corresponding frequencies. Make
+        sure that the unit of measurement is set to Hz on the oscilloscope,
+        and that the active plot is on Math mode.
+        @param sample_location (int): location of sample in fft data query
+        @returns (int) frequency that corresponds to that sample location
+        """
+        try:
+            xscale = self.device.query('MATH:HORIZONTAL:SCALE?')
+            units = self.device.query('MATH:HORIZONTAL:UNITS?')
+            if units:
+                units = str(units).strip().replace('"', '').replace('\n', '')
+            print('Oscilloscope FFT has 1 sample as %s %s' % (xscale, units))
+            if units != "Hz":
+                raise RuntimeError('Please set oscilloscope units to Hz')
+            return sample_location * xscale
+
+        except Exception as err:
+            print("Are you sure you're on FFT mode with units of Hz? We got ")
+            print("an error message: ")
+            print(str(err))
+
+    def frequency_to_samples(self, start_freq, end_freq):
+        """Converts a range of frequencies to the FFT sample indices that would
+        contain these range of frequencies. For example, if each sample is 10 Hz
+        and we wanted the frequency range 27kHz-29kHz, this function would
+        return (2700, 2800). Will make sure to fully enclose the frequency
+        range."""
+        try:
+            xscale = self.device.query('MATH:HORIZONTAL:SCALE?')
+            units = self.device.query('MATH:HORIZONTAL:UNITS?')
+            if units:
+                units = str(units).strip().replace('"', '').replace('\n', '')
+            if xscale:
+                xscale = xscale.strip()
+            print('Oscilloscope FFT has 1 sample as %s %s' % (xscale, units))
+            if units != "Hz":
+                raise RuntimeError('Please set oscilloscope units to Hz')
+            
+            lower_sample_idx = np.floor(float(start_freq) / float(xscale))
+            upper_sample_idx = np.ceil(float(end_freq) / float(xscale))
+            return lower_sample_idx, upper_sample_idx
+        except Exception as err:
+            print("Are you sure you're on FFT mode with units of Hz? We got ")
+            print("an error message: ")
+            raise RuntimeError(str(err))
+
     def _write(self, b):
         self.device.write(b)
     
     def _query(self, b):
         print(self.device.query(b))
+
+    def __repr__(self):
+        return "Measurement Device: %s" % self.name
 
 
 if __name__ == '__main__':
@@ -114,12 +170,19 @@ if __name__ == '__main__':
     
     from matplotlib import pyplot as plt
 
+    NUM_SAMPLES = 10
+    FREQUENCY_START = 0
+    FREQUENCY_END = 100000
+
     xscale, yscale = mic.get_fft_scale()
+    sample_start, sample_end = mic.frequency_to_samples(FREQUENCY_START, FREQUENCY_END)
+    print(sample_start, sample_end)
     start = time.time()
-    y = mic._fetch_fft_sample(0, 5000)
+    for _ in range(NUM_SAMPLES):
+        y = mic._fetch_fft_sample(sample_start, sample_end)
     end = time.time()
-    print("Took %s seconds to fetch fft data" % str(end - start))
-    x = np.array(list(range(y.shape[0]))) * xscale
+    print("Took %s seconds to fetch FFT data %d times" % (str(end - start), NUM_SAMPLES))
+    x = np.linspace(FREQUENCY_START, FREQUENCY_END, y.shape[0])
 
     plt.title('Oscilloscope FFT Grab')
     plt.xlabel('Frequency')

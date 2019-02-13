@@ -38,7 +38,6 @@ class Scanner(object):
         # Wait some time for handshake to occur with printer
         time.sleep(PRINTER_CONNECT_TIME)
 
-        print(self.p._p.online)
         if not self.p.online():
             raise RuntimeError("Printer is not online. Are you connecting to right USB?")
         
@@ -144,8 +143,10 @@ class Scanner(object):
         distance = (dx**2 + dy**2 + dz**2) ** 0.5
         time.sleep(delay + distance * delay_factor)
     
-    def move_speed(self, x=0.0, y=0.0, z=0.0, speed=3600, de):
-        """Move to coordinate at a certain speed. Will calculate the delay time
+    def move_speed(self, x=0.0, y=0.0, z=0.0, speed=3600, delay=0.01):
+        """
+        TODO: FIX THIS FUNCTION YOU DOOFUS
+        Move to coordinate at a certain speed. Will calculate the delay time
         needed for the program to wait during travel time by estimating the
         distance traveled and the speed.
         @param x (int): distance to travel in x axis (mm) 
@@ -153,19 +154,25 @@ class Scanner(object):
         @param z (int): distance to travel in z axis (mm) 
         @param speed (int): speed of nozzle in mm/min
         """
+        speed_per_second = float(speed) / 60.0
         move_vector = np.array([x, y, z])
         distance = np.sqrt((move_vector ** 2).sum())
-        time.
-        raise NotImplementedError()
+
+        # Actually send the move command, overriding any previous command
+        self.p.move_coord(x, y, z, speed=speed)
+        # Sleep the amount of time while the nozzle is moving, plus a small
+        # delay for tolerance reasons
+        time.sleep(distance / speed_per_second + delay)
 
     def set_as_origin(self):
         pass
 
     def __str__(self):
-        pass
+        return "Scanner object"
 
     def __repr__(self):
-        pass
+        status = "Online" if self.p.online() else "Offline"
+        return "Scanner [%s]" % status
 
 
 if __name__ == '__main__':
