@@ -10,6 +10,11 @@ import time
 import numpy as np
 import pickle
 
+# When we query the oscilloscope, it freezes the oscilloscope. Then, the scope
+# has to get new samples to perform the FFT. Therefore, we have to wait until
+# the oscilloscope can acquire the signal again and calculate a new FFT or else
+# we will get the exact same values over and over (which is not good)
+RECORD_DELAY_TIME = 0.40
 
 class OscilloscopeMicrophone(object):
     """Implements the interface for the TEKTRONIX MDO3014 oscilloscope. The
@@ -39,7 +44,7 @@ class OscilloscopeMicrophone(object):
         print('Using oscilloscope: %s' % res)
         self.name = res
 
-    def _record(self, n, sample_start=0, sample_end=5000):
+    def _record(self, n, sample_start=0, sample_end=10000, delay=RECORD_DELAY_TIME):
         """Records for n seconds, while blocking. Only returns control after
         recording is finished. For the oscilloscope, this returns our result
         as a numpy array, with dimensions (num_recordings, num_samples). We will
@@ -65,6 +70,7 @@ class OscilloscopeMicrophone(object):
         while time.time() < end_time:
             try:
                 lst.append(self._fetch_fft_sample(sample_start, sample_end))
+                time.sleep(delay)
             except ValueError as v_err:
                 # Usually happens when oscilloscope data gets corrupted and
                 # can't be interpreted as a float or something
@@ -86,7 +92,7 @@ class OscilloscopeMicrophone(object):
         @param sample_start: sample number to start recording at
         @param sample_end: sample number to stop recording at
         """
-        self._write('MATH:DEFINE "FFT(CH1)"')
+        # self._write('MATH:DEFINE "FFT(CH1)"')
         self._write(':DATa:SOUrce MATH')
         self._write(':DATa:STARt %d' % sample_start)
         self._write(':DATa:STOP %d' % sample_end)
