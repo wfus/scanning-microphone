@@ -217,6 +217,7 @@ class Scanner(object):
             a line every 2 mm on the y dimension
         @param savepath: folder that your saved wave files will be sent to.
         """
+        start_time = time.time()
         # Create a folder to store all of our sound samples in
         print_begin_time = int(time.time())
         savefolder = os.path.join(savepath, str(print_begin_time))
@@ -244,12 +245,16 @@ class Scanner(object):
                 fname = os.path.join(savefolder, "continuous_0_{}_{}".format(dx, p_y))
                 record_time = self.move_speed_noblock(x=dx, y=dy, speed=scan_speed)
                 self.mic.record_to_file(record_time, fname)
+                time.sleep(0.5)  # some padding time
             else:
                 self.move_speed(x=dx, y=dy, speed=move_speed)
+                time.sleep(0.5)  # some padding time
             previous_coord = p_x, p_y
 
         # Move back to our original location. Important since we are using relative coordinates.
         self.move(x=-distance_x, y=-distance_y)
+        end_time = time.time()
+        print('Total Scan Time: %s s' % str(end_time - start_time))
 
     def __str__(self):
         return "Scanner object"

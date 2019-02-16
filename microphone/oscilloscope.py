@@ -14,7 +14,8 @@ import pickle
 # has to get new samples to perform the FFT. Therefore, we have to wait until
 # the oscilloscope can acquire the signal again and calculate a new FFT or else
 # we will get the exact same values over and over (which is not good)
-RECORD_DELAY_TIME = 0.40
+# RECORD_DELAY_TIME = 0.40
+RECORD_DELAY_TIME = 0.50
 
 class OscilloscopeMicrophone(object):
     """Implements the interface for the TEKTRONIX MDO3014 oscilloscope. The
@@ -75,6 +76,10 @@ class OscilloscopeMicrophone(object):
                 # Usually happens when oscilloscope data gets corrupted and
                 # can't be interpreted as a float or something
                 print('Got error when fetching microphone data: %s' % str(v_err))
+                # If there are corrupted data locations we can mark these by
+                # placing -1 values
+                lst.append(np.zeros(sample_end - sample_start) - 1)
+                time.sleep(delay)
         return np.array(lst)
 
     def record_to_file(self, num_seconds, fname):
