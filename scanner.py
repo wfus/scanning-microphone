@@ -198,7 +198,8 @@ class Scanner(object):
         # scanner. The move seems to be a bit buggy with this though.
         raise NotImplementedError()
 
-    def scan_continuous_lattice(self, end_coord, resolution, scan_speed=500, move_speed=3000, savepath="./data"):
+    def scan_continuous_lattice(self, end_coord, resolution, scan_speed=500, move_speed=3000,
+        delay=0.5, sample_start=0, sample_end=10000, savepath="./data", note=""):
         """Scans lines across the x axis, with steps happening along the y axis.
         If we have a rectangular region, the scan lines will look like:
                 |-------- x distance ----|
@@ -244,7 +245,8 @@ class Scanner(object):
             if idx % 2 == 0:
                 fname = os.path.join(savefolder, "continuous_0_{}_{}".format(dx, p_y))
                 record_time = self.move_speed_noblock(x=dx, y=dy, speed=scan_speed)
-                self.mic.record_to_file(record_time, fname)
+                self.mic.record_to_file(record_time, fname, delay=delay,
+                    sample_start=sample_start, sample_end=sample_end)
                 time.sleep(0.5)  # some padding time
             else:
                 self.move_speed(x=dx, y=dy, speed=move_speed)
@@ -255,6 +257,11 @@ class Scanner(object):
         self.move(x=-distance_x, y=-distance_y)
         end_time = time.time()
         print('Total Scan Time: %s s' % str(end_time - start_time))
+
+        # Dump relevant information into the same folder in a file called
+        # notes or something
+        
+
 
     def __str__(self):
         return "Scanner object"

@@ -82,12 +82,14 @@ class OscilloscopeMicrophone(object):
                 time.sleep(delay)
         return np.array(lst)
 
-    def record_to_file(self, num_seconds, fname):
+    def record_to_file(self, num_seconds, fname, delay=0.5, sample_start=0, sample_end=10000):
         """Records <num_seconds> seconds of oscilloscope data and saves it as
         a numpy array to the file specified. User does not need to pass in a
         file extension."""
         fname += '.pkl'
-        frames = self._record(num_seconds)
+        frames = self._record(num_seconds, delay=delay,
+                              sample_start=sample_start,
+                              sample_end=sample_end)
         frames.dump(fname)
 
     def _fetch_fft_sample(self, sample_start, sample_end):
