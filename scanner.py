@@ -199,7 +199,7 @@ class Scanner(object):
         raise NotImplementedError()
 
     def scan_continuous_lattice(self, end_coord, resolution, scan_speed=500, move_speed=3000,
-        delay=0.5, sample_start=0, sample_end=10000, savepath="./data", note=""):
+        delay=0.1, sample_start=0, sample_end=10000, savepath="./data", note=""):
         """Scans lines across the x axis, with steps happening along the y axis.
         If we have a rectangular region, the scan lines will look like:
                 |-------- x distance ----|
@@ -225,11 +225,24 @@ class Scanner(object):
         if not os.path.exists(savefolder):
             os.makedirs(savefolder)
 
+        
+
+        with open(os.path.join(savefolder, 'info'), 'w') as f:
+            f.write("Scanning on grid, stopping at each point. Using parameters\n")
+            f.write('SampleStart: %d\n' % sample_start)
+            f.write('SampleEnd: %d\n' % sample_end)
+            f.write('RecordTime: %d\n' % sample_start)
+            f.write('end_coord: %s\n' % str(end_coord))
+            f.write('resolution: %d\n' % resolution)
+            f.write("\n\n")
+            f.write("Additional notes:\n%s\n" % note)
+
         # since we are assuming that we start at the begin_coord, consider the relative coordinates where
         # begin_coord is just the origin already.
         # interweave the start and end points. The first start point is just the
         # origin, so we remove that.
         distance_x, distance_y = end_coord[0], end_coord[1]
+        print("Expected Number of samples per line: %d" % int(scan_speed / 60.0 / delay / distance_x))
         scan_points = [[(0, y), (distance_x, y)] for y in np.linspace(0, distance_y, resolution)]
         scan_points = [item for sublist in scan_points for item in sublist]
         scan_points = scan_points[1:]
@@ -258,8 +271,6 @@ class Scanner(object):
         end_time = time.time()
         print('Total Scan Time: %s s' % str(end_time - start_time))
 
-        # Dump relevant information into the same folder in a file called
-        # notes or something
 
     def scan_grid(self, end_coord, resolution, scan_speed=4000, record_time=2.0, 
         delay=0.5, sample_start=0, sample_end=10000, savepath="./data", note=""):
