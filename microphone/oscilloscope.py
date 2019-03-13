@@ -25,25 +25,38 @@ class OscilloscopeMicrophone(object):
         # Try to connect to the first USBTMC oscilloscope found.
         rm = visa.ResourceManager('@py')
         devices = rm.list_resources()
-        devname = None
+        devnames = []
         for d in devices:
-            # Oscilloscope should have USB and at least 4 pairs
-            # of semicolons (bad critieria but whatever)
+            # Oscilloscope should have USB and at least 4 pairs of semicolons
+            # (bad critieria but whatever). Need to filter again later because
+            # we also use USB for our signal generator
             if d.count(':') >= 8 and 'USB' in d:
-                devname = d
-                break
+                devnames.append(d) 
 
-        if not devname:
+        if not devnames:
             print('Only found devices: %s' % str(devices))
             raise RuntimeError('Could not find an oscilloscope, check connection')
         
-        self.device = rm.get_instrument(devname)
+        rigol_devname = None
+        for d in devnames:
+            potential_device = rm.get_instrument(d)
+            potential_device.write("*IDN?")
+            time.sleep(0.2)  # give the device a bit of time to respond
+            test_id = potential_device.read()
+            print("Checking out device with ID: %s" % test_id)
 
-        # Sanity check - print out the device name through the pretty
-        # universal command "*IDN?"
-        res = self.device.query('*IDN?')
-        print('Using oscilloscope: %s' % res)
-        self.name = res
+            if 'tektronix' in test_id.lower():
+                rigol_devname = d
+                self.device = potential_device
+                self.name = test_id
+                break
+            else:
+                print("This is not a tektronix oscilloscope")
+                potential_device.close()
+
+        if not rigol_devname:
+            raise RuntimeError('Could not find an Oscilloscope instrument, check connection')
+
 
     def _record(self, n, sample_start=0, sample_end=10000, delay=RECORD_DELAY_TIME):
         """Records for n seconds, while blocking. Only returns control after

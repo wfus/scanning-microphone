@@ -272,7 +272,7 @@ class Scanner(object):
         print('Total Scan Time: %s s' % str(end_time - start_time))
 
 
-    def scan_grid(self, end_coord, resolution, scan_speed=4000, record_time=2.0, 
+    def scan_grid(self, end_coord, resolution_x, resolution_y, scan_speed=4000, record_time=2.0, 
         delay=0.5, sample_start=0, sample_end=10000, savepath="./data", note=""):
         """Scans along a square lattice and saves each audio clip at each location.
         Audio clips will be saved the format:
@@ -296,7 +296,8 @@ class Scanner(object):
             f.write('SampleEnd: %d\n' % sample_end)
             f.write('RecordTime: %d\n' % sample_start)
             f.write('end_coord: %s\n' % str(end_coord))
-            f.write('resolution: %d\n' % resolution)
+            f.write('resolution (x): %d\n' % resolution_x)
+            f.write('resolution (y): %d\n' % resolution_y)
             f.write("\n\n")
             f.write("Additional notes:\n%s\n" % note)
 
@@ -304,8 +305,8 @@ class Scanner(object):
         # begin_coord is just the origin already.
         distance_x = end_coord[0]
         distance_y = end_coord[1]
-        scan_points = [(x, y) for x in np.linspace(0, distance_x, resolution) 
-                              for y in np.linspace(0, distance_y, resolution)]
+        scan_points = [(x, y) for x in np.linspace(0, distance_x, resolution_x) 
+                              for y in np.linspace(0, distance_y, resolution_y)]
         
         # Beginning at the begin_coord, we are doing to stop and keep scanning
         previous_coord = (0, 0)
