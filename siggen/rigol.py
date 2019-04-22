@@ -75,7 +75,7 @@ class SignalGenerator(object):
         if not rigol_devname:
             raise RuntimeError('Could not find a USB instrument, check connection')
 
-    def set_frequency(self, frequency, amplitude, offset=0):
+    def set_frequency(self, frequency, amplitude=20, offset=0):
         """Set the frequency, voltage amplitude, and voltage offset of the
         function generator. Sends it out as a sine wave.
             Frequency: 0 to 20,000,000 Hz
@@ -85,7 +85,7 @@ class SignalGenerator(object):
         CMD = "APPLy:SINusoid"
         CMD += " {},{},{}".format(frequency, amplitude, offset)
         self.device.write(CMD)
-        
+
 
 if __name__ == '__main__':
     pass

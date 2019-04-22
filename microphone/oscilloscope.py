@@ -197,21 +197,19 @@ if __name__ == '__main__':
     from matplotlib import pyplot as plt
 
     NUM_SAMPLES = 10
-    FREQUENCY_START = 0
-    FREQUENCY_END = 100000
+
+    sample_start = 5595
+    sample_end = 5605
 
     xscale, yscale = mic.get_fft_scale()
-    sample_start, sample_end = mic.frequency_to_samples(FREQUENCY_START, FREQUENCY_END)
-    print(sample_start, sample_end)
     start = time.time()
     for _ in range(NUM_SAMPLES):
         y = mic._fetch_fft_sample(sample_start, sample_end)
     end = time.time()
     print("Took %s seconds to fetch FFT data %d times" % (str(end - start), NUM_SAMPLES))
-    x = np.linspace(FREQUENCY_START, FREQUENCY_END, y.shape[0])
 
     plt.title('Oscilloscope FFT Grab')
     plt.xlabel('Frequency')
     plt.ylabel('Voltage')
-    plt.plot(x, y)
+    plt.plot(y)
     plt.show()

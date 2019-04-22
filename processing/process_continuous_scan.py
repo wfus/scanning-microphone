@@ -3,6 +3,7 @@ import glob
 import pickle
 import os
 import argparse
+import skimage
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -26,6 +27,8 @@ def compile_data_to_array(data_dir, sample_start=None, sample_end=None):
         if not sample_start: sample_start = 0
         if not sample_end: sample_end = n_freq_bins
         amplitudes = fft_data[:, sample_start:sample_end].max(axis=1)
+        argmaxes = fft_data[:].argmax(axis=1)
+        # print(argmaxes)
 
         name = os.path.basename(fname).replace('.pkl', '').replace('continuous_', '')
         coords = [float(coord) for coord in name.split('_')]
@@ -36,8 +39,7 @@ def compile_data_to_array(data_dir, sample_start=None, sample_end=None):
         
     # Sort by y coordinate (xmin and xmax are expected to be the same for all)
     data = list(sorted(data))
-    if not data:
-        raise RuntimeError('No Data Found')
+    if not data: raise RuntimeError('No Data Found')
         
     # Just get the amplitudes and stack them on each other to form an image
     ampdata = [d[-1] for d in data]
@@ -54,10 +56,27 @@ def compile_data_to_array(data_dir, sample_start=None, sample_end=None):
 
 
 if __name__ == '__main__':
-    ampdata = compile_data_to_array('../data/1552440057/27500')
-    plt.figure(figsize=(16, 16)) 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data', required=True, type=str, dest="data",
+                        help="Path to data folder with .pkl dumps")
+    parser.add_argument('--start', default=None, type=int, dest="start",
+                        help="Sample number to start calculating from in "
+                        "frequency bins from FFT")
+    parser.add_argument('--end', default=None, type=int, dest="end",
+                        help="Sample number to end calculating from in "
+                        "frequency bins from FFT")
+    parser.add_argument('--save', default=None, type=str, dest="save",
+                        help="Where to save resulting image on disk")
+    args = parser.parse_args()
+
+
+    ampdata = compile_data_to_array(args.data, args.start, args.end)
+    fig = plt.figure(figsize=(16, 16)) 
     long_side = max(list(ampdata.shape))
     short_side = min(list(ampdata.shape))
-    # plt.imshow(skimage.transform.resize(ampdata, (short_side, short_side)), cmap='seismic')
-    plt.imshow(ampdata, cmap='seismic')
-    plt.show()
+    plt.imshow(skimage.transform.resize(ampdata, (short_side, short_side)), cmap='seismic')
+    # plt.imshow(ampdata, cmap='seismic')
+    if args.save:
+        fig.savefig(args.save)
+    else:
+        plt.show()

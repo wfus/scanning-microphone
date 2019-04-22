@@ -1,0 +1,29 @@
+#!/bin/bash
+EXT=png
+
+function process {
+    python3 processing/process_continuous_scan.py \
+    --data $1 \
+    --save $2.$EXT \
+    --start $3 \
+    --end $4 
+}
+
+process data/1552486891/26500 images/26500 5000 6300
+process data/1552486891/27000 images/27000 5000 6300
+process data/1552486891/27500 images/27500 5000 6300
+process data/1552486891/28000 images/28000 5000 6300
+process data/1552486891/28500 images/28500 5000 6300
+process data/1552486891/29000 images/29000 5000 6300
+process data/1552486891/29500 images/29500 5000 6300
+process data/1552486891/30000 images/30000 5000 6300
+
+process data/1552589273/22500 images/22500 4000 7000
+process data/1552589273/23500 images/23500 4000 7000
+process data/1552589273/24500 images/24500 4000 7000
+process data/1552589273/29500 images/29500 4000 7000
+process data/1552589273/30000 images/30000 4000 7000
+process data/1552589273/31000 images/31000 5000 7000
+process data/1552589273/32000 images/32000 5000 7000
+process data/1552589273/33000 images/33000 5000 7000
+process data/1552589273/34000 images/34000 5000 7000

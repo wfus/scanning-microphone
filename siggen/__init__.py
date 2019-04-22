@@ -1,0 +1,1 @@
+from .rigol import SignalGenerator
