@@ -6,6 +6,7 @@ to work with the Hoffman computer in LISE, it also comes on a wheeled cart
 so it's easy to move back and forth if necessary. The 3D printer looks like
 this.
 
+![printer](../docs/images/printer/tazlulzbot.jpg)
 
 ## Setup
 

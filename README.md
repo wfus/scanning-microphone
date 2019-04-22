@@ -30,6 +30,7 @@ all of which have to be connected to your computer.
 
 1. CNC Machine [(Setup Instructions)](printer/INSTRUCTIONS.md)
 2. Microphone [(Setup Instructions)](microphone/INSTRUCTIONS.md)
+3. Signal Generator [(Setup Instructions)](siggen/INSTRUCTIONS.md)
 
 ## Setup and Installation
 
