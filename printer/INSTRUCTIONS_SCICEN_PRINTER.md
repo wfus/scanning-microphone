@@ -65,7 +65,10 @@ speed given. The speed is in units of `mm/min`.
 3. If the motor still doesn't move or refuses the connect, try searching up
 what baud rate the printer operates at. You can usually find this by Googling
 `<my 3d printer mode> default baud rate`. Then, when connecting to the printer,
-you can use `a = Printer(serial="<Your Serial Locaation>", baudrate=<your baud rate as integer>)`. 
+you can use `a = Printer(serial="<Your Serial Location>", baudrate=<your baud rate as integer>)`. 
+For example, for the TAZ LULZBOT, the default baud rate is 250000 when I search
+it up and I have the device at `/dev/ttyACM0`, so I would use the command
+`a = Printer(serial="/dev/ttyACM0", baudrate=250000)` to connect.
 
 ## Troubleshooting
 
