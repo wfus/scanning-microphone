@@ -2,13 +2,18 @@
 
 ## Normal Microphone Setup
 
-This section concerns setting up a microphone that is connected to the computer's sound card. For example, something that is connected to the serial microphone jack on most desktops. A lot of our testing images were imaged using regular microphones, but for higher frequencies we used the Oscilloscope connection.
+This section concerns setting up a microphone that is connected to the
+computer's sound card. For example, something that is connected to the serial
+microphone jack on most desktops. A lot of our testing images were imaged using
+regular microphones, but for higher frequencies we used the Oscilloscope connection.
 
 ### Pyaudio Installation
 
-#### Ubuntu 16.04
+#### Ubuntu 16.04/18.04
 
-We'll be using pyaudio to capture microphone input while the CNC is scanning through 3D space. For the Ubuntu 16.04 setup inside Science Center 102, the following commands worked for installing pyaudio.
+We'll be using pyaudio to capture microphone input while the CNC is scanning
+through 3D space. For the Ubuntu 16.04 setup inside Science Center 102, 
+the following commands worked for installing pyaudio.
 
 ```bash
 sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
@@ -33,18 +38,22 @@ arecord -l
 
 This section concerns setting up the scanning using an oscilloscope connection.
 
-The oscilloscope we used was borrowed from Science Center 102, and it is a Tektronix MDO3014.
+The oscilloscope we used was borrowed from Science Center 102, and it is a
+Tektronix MDO3014.
 
 ### Setup
 
-We're going to need a way to communicate with most oscilloscopes. This is made easier with [Python-USBTMC](https://github.com/python-ivi/python-usbtmc), so we can actually send the commands to the oscilloscope and get data from it.
+We're going to need a way to communicate with most oscilloscopes. This is made
+easier with [Python-USBTMC](https://github.com/python-ivi/python-usbtmc), so we
+can actually send the commands to the oscilloscope and get data from it.
 
 ```bash
 pip install pyusb
 pip install python-usbtmc
 ```
 
-Then, we actually have to add a group for the oscilloscope devices. You will only have to do this step once.
+Then, we actually have to add a group for the oscilloscope devices. You will
+only have to do this step once.
 
 ```bash
 sudo apt-get install libusb-dev
@@ -68,10 +77,11 @@ $ dmesg
 [ 3456.352470] usb 1-1.5: Manufacturer: Tektronix
 [ 3456.352474] usb 1-1.5: SerialNumber: C021660
 [ 3456.432415] usbcore: registered new interface driver usbtmc
-
 ```
 
-In this case, our Tektronix oscilloscope has idVendor 0x0699 and idProduct 0x0408 (these values are in hex!). Record those numbers down and let's add them into our `udev` rules.
+In this case, our Tektronix oscilloscope has idVendor 0x0699 and idProduct
+0x0408 (these values are in hex!). Record those numbers down and let's add them
+into our `udev` rules.
 
 ```bash
 sudo vim /etc/udev/rules.d/usbtmc.rules

@@ -1,3 +1,5 @@
+"""Script to check if you have a traditional microphone plugged into the
+computer. This microphone should be connected through the audio jack"""
 import pyaudio
 
 # load in our audio recording device
