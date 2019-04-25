@@ -8,6 +8,12 @@ There's hundreds of them!
 
 ![rigolimage]()
 
+## Setup
+
+If you haven't already, you'll have to install the `PyVISA` library to
+communicate with the siggen and oscilloscope.
+You can find the setup instructions for PyVisa [here.](https://pyvisa.readthedocs.io/en/stable/index.html)
+
 ## System Documentation
 
 For some documentation of the commands and an extended programming manual
