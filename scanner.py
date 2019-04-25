@@ -20,6 +20,7 @@ sys.path.append('./printer')
 # from microphone import Microphone
 from oscilloscope import OscilloscopeMicrophone as Microphone
 from printer import Printer
+from siggen import SignalGenerator
 
 
 PRINTER_CONNECT_TIME = 2.0
@@ -32,6 +33,7 @@ class Scanner(object):
     printer"""
     def __init__(self, serial=None):
         self.mic = Microphone()
+        self.siggen = None   # only connect signal generator when it's going to be used
         print('Trying to connect printer through USB port {}'.format(serial))
         self.p = Printer(serial=serial)
 
@@ -225,8 +227,6 @@ class Scanner(object):
         if not os.path.exists(savefolder):
             os.makedirs(savefolder)
 
-        
-
         with open(os.path.join(savefolder, 'info'), 'w') as f:
             f.write("Scanning on grid, stopping at each point. Using parameters\n")
             f.write('SampleStart: %d\n' % sample_start)
@@ -270,7 +270,6 @@ class Scanner(object):
         self.move(x=-distance_x, y=-distance_y)
         end_time = time.time()
         print('Total Scan Time: %s s' % str(end_time - start_time))
-
 
     def scan_grid(self, end_coord, resolution_x, resolution_y, scan_speed=4000, record_time=2.0, 
         delay=0.5, sample_start=0, sample_end=10000, savepath="./data", note=""):
@@ -321,6 +320,99 @@ class Scanner(object):
 
         # Move back to our original location. Important since we are using relative coordinates.
         self.move_speed(x=-distance_x, y=-distance_y, speed=scan_speed)        
+
+    def scan_continuous_lattice_with_siggen(self, frequencies, end_coord, resolution,
+        scan_speed=500, move_speed=3000, delay=0.1, savepath="./data", scan_full=False, note=""):
+        """Scans lines across the x axis, with steps happening along the y axis.
+        If we have a rectangular region, the scan lines will look like:
+                |-------- x distance ----|
+                __________________________
+                __________________________
+                ...
+                __________________________
+        When moving in a straight line, the microphone will be polled continuously
+        during the time, so we can just linearly interpolate the location of
+        the microphone at any given time here. The format of the saved files
+        will be:
+            <savepath>/<time.time()>/<frequency>/continuous_<xmin>_<xmax>_<yloc>.wav
+        @param frequencies: list of frequencies to scan at
+        @param end_coord: tuple of x and y coordinate to scan until
+        @param resolution: number of samples for the y dimension. For example,
+            if we scan a 100 mm x 100 mm box, a scan size of 51 will mean
+            a line every 2 mm on the y dimension
+        @param savepath: folder that your saved wave files will be sent to.
+        @param scan_full: scan the full range of our oscilloscope rather than a small chunk
+        @param note: string of text to save to info file as additional notes
+        """
+        if not self.siggen:
+            self.siggen = SignalGenerator()
+
+        start_time = time.time()
+        # Create a folder to store all of our sound samples in
+        print_begin_time = int(time.time())
+        savefolder = os.path.join(savepath, str(print_begin_time))
+        if not os.path.exists(savefolder):
+            os.makedirs(savefolder)
+
+        for freq in frequencies:
+            for _ in range(5):
+                self.siggen.set_frequency(freq)
+            # We can set the samples in terms of the frequency. For our oscilloscope
+            # with resolution 5Hz, we have can actually just get the top and bottom
+            # samples that correspond to our freq.
+            if scan_full:
+                sample_start, sample_end = 0, 10000
+            else:
+                sample_start = int(np.floor(freq / 5.0) - 5)
+                sample_end = int(np.ceil(freq / 5.0) + 5)
+            print("Recording from sample {} to {}".format(sample_start, sample_end))
+            freq_folder = os.path.join(savefolder, str(freq))
+            if not os.path.exists(freq_folder):
+                os.makedirs(freq_folder)
+            with open(os.path.join(freq_folder, 'info'), 'w') as f:
+                f.write("Scanning on grid, stopping at each point. Using parameters\n")
+                f.write('SampleStart: %d\n' % sample_start)
+                f.write('SampleEnd: %d\n' % sample_end)
+                f.write('RecordTime: %d\n' % sample_start)
+                f.write('end_coord: %s\n' % str(end_coord))
+                f.write('resolution: %d\n' % resolution)
+                f.write("\n\n")
+                f.write("Additional notes:\n%s\n" % note)
+
+            # since we are assuming that we start at the begin_coord, consider the relative coordinates where
+            # begin_coord is just the origin already.
+            # interweave the start and end points. The first start point is just the
+            # origin, so we remove that.
+            distance_x, distance_y = end_coord[0], end_coord[1]
+            expected_samples = int(float(distance_x)/ (scan_speed / 60.0) / float(delay))
+            print("Expected Number of samples per line: %d" % expected_samples)
+            scan_points = [[(0, y), (distance_x, y)] for y in np.linspace(0, distance_y, resolution)]
+            scan_points = [item for sublist in scan_points for item in sublist]
+            scan_points = scan_points[1:]
+            
+            # Beginning at the begin_coord, we are doing to stop and keep scanning
+            # The even indices will be scanning/moving, while the odd indices
+            # will be moving only.
+            previous_coord = (0, 0)
+            for idx, coord in tqdm.tqdm(list(enumerate(scan_points))):
+                p_x, p_y = coord
+                dx = p_x - previous_coord[0]
+                dy = p_y - previous_coord[1]
+                if idx % 2 == 0:
+                    fname = os.path.join(freq_folder, "continuous_0_{}_{}".format(dx, p_y))
+                    record_time = self.move_speed_noblock(x=dx, y=dy, speed=scan_speed)
+                    self.mic.record_to_file(record_time, fname, delay=delay,
+                        sample_start=sample_start, sample_end=sample_end)
+                    time.sleep(0.5)  # some padding time
+                else:
+                    self.move_speed(x=dx, y=dy, speed=move_speed)
+                    time.sleep(0.5)  # some padding time
+                previous_coord = p_x, p_y
+
+            # Move back to our original location. Important since we are using relative coordinates.
+            self.move_speed(x=-distance_x, y=-distance_y, speed=move_speed)
+            end_time = time.time()
+            print('Total Scan Time: %s s' % str(end_time - start_time))
 
 
     def __str__(self):
