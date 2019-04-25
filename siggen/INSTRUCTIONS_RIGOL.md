@@ -6,6 +6,8 @@ You should be able to get a lot of these signal generators from Science Center
 102, or the Physics 191 lab, so ask Rob or Joe about getting access.
 There's hundreds of them!
 
+![rigolimage]()
+
 ## System Documentation
 
 For some documentation of the commands and an extended programming manual
