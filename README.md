@@ -60,7 +60,7 @@ frequencies as you go along. The setup instructions can be found
 
 There are a few different ways for performing the measurements, so I just
 documented the few ways I tried measuring.
-Some of the notebooks are available [here](processing/PROCESSING.md)
+Some of the notebooks are available [here.](processing/PROCESSING.md)
 
 ## Contact
 

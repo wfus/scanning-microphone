@@ -28,6 +28,7 @@ folder/<x_coord>_<y_coord>_<z_coord>.pkl
 where each pickle file contains a numpy array of dimensions
 `NUM_SAMPLES x FFT_RESOLUTION`.
 
+There is also a jupyter notebook at `PointScanTutorial.ipynb`.
 
 ### Continuous Scanning in Lattice
 
