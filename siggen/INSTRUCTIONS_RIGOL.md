@@ -35,6 +35,7 @@ signal.set_frequency(10000, amplitude=5, offset=5)
 ```
 
 This will set channel 1 of the signal generator to emit a sine wave of 10000 Hz, with an amplitude of 5V peak to peak and an offset voltage of 5V.
+__The screen on the RIGOL might not show that the frequency has changed, but if you actually check with an oscilloscope or if you connect it to a transducer it will be clear.__
 
 ## Troubleshooting
 

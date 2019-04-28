@@ -46,7 +46,8 @@ Then, open an interactive terminal and import the signal generator.</p>
 signal = SignalGenerator()
 signal.set_frequency(<span class="hljs-number">10000</span>, amplitude=<span class="hljs-number">5</span>, offset=<span class="hljs-number">5</span>)
 </div></code></pre>
-<p>This will set channel 1 of the signal generator to emit a sine wave of 10000 Hz, with an amplitude of 5V peak to peak and an offset voltage of 5V.</p>
+<p>This will set channel 1 of the signal generator to emit a sine wave of 10000 Hz, with an amplitude of 5V peak to peak and an offset voltage of 5V.
+<strong>The screen on the RIGOL might not show that the frequency has changed, but if you actually check with an oscilloscope or if you connect it to a transducer it will be clear.</strong></p>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <p>If pyvisa says &quot;Found a device whose serial number cannot be read... try
 making sure your user has permissions to read usb</p>
