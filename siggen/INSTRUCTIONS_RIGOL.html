@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <title>Setting up the RIGOL DG1022</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+    </head>
+    <body>
+        <h1 id="setting-up-the-rigol-dg1022">Setting up the RIGOL DG1022</h1>
+<p>The RIGOL DG1022 was used to scan through different frequencies when measuring
+the steel pillar metamaterial.
+You should be able to get a lot of these signal generators from Science Center
+102, or the Physics 191 lab, so ask Rob or Joe about getting access.
+There's hundreds of them!</p>
+<p><img src="file:///c:\Users\EDGEPC4\scanning-microphone\docs\images\siggen\rigolrightsideview.jpg" alt="rigolimage"></p>
+<h2 id="setup">Setup</h2>
+<p>If you haven't already, you'll have to install the <code>PyVISA</code> library to
+communicate with the siggen and oscilloscope.
+You can find the setup instructions for PyVisa <a href="https://pyvisa.readthedocs.io/en/stable/index.html">here.</a></p>
+<h2 id="system-documentation">System Documentation</h2>
+<p>For some documentation of the commands and an extended programming manual
+you can check out this <a href="http://int.rigol.com/File/UploadSpecific/20150909/DG1000%20Programming%20Guide.pdf">link.</a>
+This will probably be helpful if you want to extend some of the features
+already implemented here.</p>
+<h2 id="how-to-use">How to Use</h2>
+<p>The API is relatively simple.
+Make sure that you connect the USB between the computer and the RIGOL signal generator.
+Then, open an interactive terminal and import the signal generator.</p>
+<pre><code class="language-python"><div><span class="hljs-keyword">from</span> siggen <span class="hljs-keyword">import</span> SignalGenerator
+
+signal = SignalGenerator()
+signal.set_frequency(<span class="hljs-number">10000</span>, amplitude=<span class="hljs-number">5</span>, offset=<span class="hljs-number">5</span>)
+</div></code></pre>
+<p>This will set channel 1 of the signal generator to emit a sine wave of 10000 Hz, with an amplitude of 5V peak to peak and an offset voltage of 5V.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>If pyvisa says &quot;Found a device whose serial number cannot be read... try
+making sure your user has permissions to read usb</p>
+<pre><code>```
+sudo groupadd usbusers
+sudo usermod -a -G usbusers &lt;USERNAME&gt;
+```    
+</code></pre>
+<p>Also, you will have to add a USB rule.</p>
+<pre><code>```
+sudo vim /etc/udev/rules.d/99-com.rules
+```
+</code></pre>
+<p>Add this line to it, and save.</p>
+<pre><code>```
+SUBSYSTEM==&quot;usb&quot;, MODE=&quot;0666&quot;, GROUP=&quot;usbusers&quot;
+```
+</code></pre>
+<p>Then, restart the USB service, and everything should be working and you
+should be able to see the RIGOL signal generator inside the list of devices
+when searching for one using pyvisa.</p>
+
+    </body>
+    </html>

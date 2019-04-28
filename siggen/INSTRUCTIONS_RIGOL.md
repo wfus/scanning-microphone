@@ -6,7 +6,7 @@ You should be able to get a lot of these signal generators from Science Center
 102, or the Physics 191 lab, so ask Rob or Joe about getting access.
 There's hundreds of them!
 
-![rigolimage]()
+![rigolimage](../docs/images/siggen/rigolrightsideview.jpg)
 
 ## Setup
 
@@ -20,6 +20,21 @@ For some documentation of the commands and an extended programming manual
 you can check out this [link.](http://int.rigol.com/File/UploadSpecific/20150909/DG1000%20Programming%20Guide.pdf)
 This will probably be helpful if you want to extend some of the features
 already implemented here.
+
+## How to Use
+
+The API is relatively simple.
+Make sure that you connect the USB between the computer and the RIGOL signal generator.
+Then, open an interactive terminal and import the signal generator.
+
+```python
+from siggen import SignalGenerator
+
+signal = SignalGenerator()
+signal.set_frequency(10000, amplitude=5, offset=5)
+```
+
+This will set channel 1 of the signal generator to emit a sine wave of 10000 Hz, with an amplitude of 5V peak to peak and an offset voltage of 5V.
 
 ## Troubleshooting
 
