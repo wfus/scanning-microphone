@@ -42,22 +42,22 @@ __The screen on the RIGOL might not show that the frequency has changed, but if 
 If pyvisa says "Found a device whose serial number cannot be read... try
 making sure your user has permissions to read usb
 
-    ```
-    sudo groupadd usbusers
-    sudo usermod -a -G usbusers <USERNAME>
-    ```    
+```bash
+sudo groupadd usbusers
+sudo usermod -a -G usbusers <USERNAME>
+```    
 
 Also, you will have to add a USB rule.
     
-    ```
-    sudo vim /etc/udev/rules.d/99-com.rules
-    ```
+```bash
+sudo vim /etc/udev/rules.d/99-com.rules
+```
 
 Add this line to it, and save.
     
-    ```
-    SUBSYSTEM=="usb", MODE="0666", GROUP="usbusers"
-    ```
+```bash
+SUBSYSTEM=="usb", MODE="0666", GROUP="usbusers"
+```
 
 Then, restart the USB service, and everything should be working and you
 should be able to see the RIGOL signal generator inside the list of devices
