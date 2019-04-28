@@ -56,6 +56,15 @@ if you want to vary the sound waves you send in or scanning different
 frequencies as you go along. The setup instructions can be found
 [here](siggen/INSTRUCTIONS.md).
 
+## Scanning
+
+The main library that you use for controlling everything and scanning will
+be `scanner.py`.
+I find the easiest way is to use an ipython terminal and do everything
+from there interactively.
+Some troubleshooting and small starting example can be found
+[here.](docs/scanning/firstscan.md)
+
 ## Postprocessing Measurements
 
 There are a few different ways for performing the measurements, so I just

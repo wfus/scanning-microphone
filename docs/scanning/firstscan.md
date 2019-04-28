@@ -35,10 +35,21 @@ This is by default a blocking command, and you only regain use of the python pro
 If you want a nonblocking version (useful if you want to be collecting audio samples while the 3d printer is moving) then you can also use the function `move_speed_noblock` with the same arguments.
 
 Once you have moved the microphone head to the correct location, you can do a scan.
-Read the comments 
+Read the comments in each function implementation to see what's going on.
+We can first scan a (100, 100) grid first as a test.
+We will do 51 samples of the y dimension, so we increment by 2mm every time.
+With the continuous scan method, the resolution on the x axis depends on
+the speed of the nozzle and the samples per second (delay).
+For this scope I recommend a delay of at least 0.1 or else sometimes the scope
+won't have enough time to calculate the new FFT and you end up literally getting
+the same spectrum throughout the entire scan.
 
+```python
+>>> scanner.scan_continuous_lattice((100, 100), 51, scan_speed=500, move_speed=6000, delay=0.1)
+```
 
-
+A progress bar should pop up with how much time the scan will take.
+The data is saved to the `data` folder.
 
 ## Troubleshooting
 
