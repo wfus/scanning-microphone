@@ -4,6 +4,9 @@
 # Virtualenv
 venv/
 
+# Data directory
+data/
+
 # VSCode
 *.vscode
 
