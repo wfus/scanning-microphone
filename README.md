@@ -56,6 +56,12 @@ if you want to vary the sound waves you send in or scanning different
 frequencies as you go along. The setup instructions can be found
 [here](siggen/INSTRUCTIONS.md).
 
+## Postprocessing Measurements
+
+There are a few different ways for performing the measurements, so I just
+documented the few ways I tried measuring.
+Some of the notebooks are available [here](processing/PROCESSING.md)
+
 ## Contact
 
 For any inquiries about the setup or packages, contact 
